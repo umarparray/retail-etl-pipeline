@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Retail ETL Pipeline Project
 
 ## Overview
@@ -27,3 +28,7 @@ Raw Data → Pandas Cleaning → Spark Processing → Fact Table → SQL Analyti
 - Cleaned datasets
 - Fact sales table
 - Business insights from SQL queries
+=======
+# retail-etl-pipeline
+End-to-end ETL pipeline using Pandas, PySpark, and SQL
+>>>>>>> 019e407307ea9d24f1fbed6df6966b2118f038bc
