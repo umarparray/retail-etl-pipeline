@@ -1,41 +1,88 @@
-SELECT * FROM fact_sales LIMIT 5;
+-- Total Revenue
+-- Problem: How much revenue has the business generated?
 
--- KPI 1: Total Revenue
-SELECT ROUND(SUM(total_amount),2) AS total_revenue
+SELECT ROUND(SUM(total_amount), 2) AS total_revenue
 FROM fact_sales;
 
--- KPI 2: Revenue by City
-SELECT city, ROUND(SUM(total_amount),2) AS total_revenue
+-- Revenue by City
+-- Problem: Which cities generate the most revenue?
+
+SELECT
+    city,
+    ROUND(SUM(total_amount),2) AS total_revenue
 FROM fact_sales
 GROUP BY city
 ORDER BY total_revenue DESC;
 
--- KPI 3: Revenue by Product Category
-SELECT category_name, ROUND(SUM(total_amount),2) AS total_revenue
+-- Revenue Category Classification
+-- Problem: Classify orders into High, Medium, and Low value transactions.
+
+SELECT
+    CASE
+        WHEN total_amount >= 1000 THEN 'High Value'
+        WHEN total_amount >= 500 THEN 'Medium Value'
+        ELSE 'Low Value'
+    END AS order_category,
+    COUNT(*) AS total_orders
 FROM fact_sales
-GROUP BY category_name
+GROUP BY order_category;
+
+-- Revenue by Product Category
+-- Problem: Which product categories contribute the most revenue?
+
+SELECT category_name, 
+            ROUND(SUM(total_amount),2) AS total_revenue 
+FROM fact_sales 
+GROUP BY category_name 
 ORDER BY total_revenue DESC;
 
 -- Monthly Revenue Trend
-SELECT month, ROUND(SUM(total_amount),2) AS monthly_revenue
-FROM fact_sales 
-GROUP BY month
+-- Problem: Analyze revenue trends across months.
+
+WITH monthly_sales AS (
+    SELECT
+        month,
+        SUM(total_amount) AS revenue
+    FROM fact_sales
+    GROUP BY month
+)
+
+SELECT *
+FROM monthly_sales
 ORDER BY month;
 
--- Top 10 Products by 
-SELECT product_name, ROUND(SUM(total_amount),2) AS revenue
-FROM fact_sales
-GROUP BY product_name
-ORDER BY revenue DESC
-LIMIT 10;
+-- Month-over-Month Revenue Comparison
+-- Problem: Compare each month's revenue against the previous month.
 
--- Top 10 Products by Quantity Sold
-SELECT product_name, ROUND(SUM(total_amount),2) AS revenue
-FROM fact_sales
-GROUP BY product_name
-ORDER BY revenue DESC
-LIMIT 10;
+WITH monthly_sales AS (
+    SELECT
+        month,
+        SUM(total_amount) AS revenue
+    FROM fact_sales
+    GROUP BY month
+)
 
--- Average Order Value
-SELECT ROUND(AVG(total_amount),2) AS average_order_value
-FROM fact_sales;
+SELECT
+    month,
+    revenue,
+    LAG(revenue) OVER (ORDER BY month) AS previous_month_revenue,
+    revenue - LAG(revenue) OVER (ORDER BY month) AS revenue_change
+FROM monthly_sales;
+
+-- Top Products Ranking
+-- Problem: Rank products based on revenue generated.
+
+WITH product_revenue AS (
+    SELECT
+        product_name,
+        SUM(total_amount) AS revenue
+    FROM fact_sales
+    GROUP BY product_name
+)
+
+SELECT
+    product_name,
+    revenue,
+    RANK() OVER (ORDER BY revenue DESC) AS product_rank
+FROM product_revenue;
+
